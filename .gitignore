@@ -1,0 +1,13 @@
+# variables de entorno
+.env
+
+# node
+frontend/node_modules
+frontend/build
+
+# python
+__pycache__/
+*.pyc
+
+# otros
+.DS_Store
