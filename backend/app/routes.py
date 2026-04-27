@@ -331,3 +331,223 @@ def productos_mas_vendidos():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+# CONSULTA CON WITH (CTE) + ORDER BY + LIMIT
+# Top 5 productos más vendidos 
+
+@routes.route("/productos/top-5", methods=["GET"])
+def top_5_productos():
+    """Top 5 productos más vendidos"""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        query = """
+        WITH ventas_por_producto AS (
+            SELECT
+                p.id_producto,
+                p.nombre_producto,
+                SUM(d.cantidad) AS total_vendido
+            FROM detalle_venta d
+            INNER JOIN producto p ON p.id_producto = d.id_producto
+            GROUP BY p.id_producto, p.nombre_producto
+        )
+        SELECT *
+        FROM ventas_por_producto
+        ORDER BY total_vendido DESC
+        LIMIT 5
+        """
+        
+        cur.execute(query)
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        productos = []
+        for row in rows:
+            productos.append({
+                "id_producto": row[0],
+                "nombre_producto": row[1],
+                "total_vendido": row[2]
+            })
+
+        return jsonify(productos)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# VIEWS
+# Serviran para mostrar resúmenes o detalles específicos sin necesidad de escribir consultas complejas en el frontend
+
+@routes.route("/ventas/resumen", methods=["GET"])
+def resumen_ventas():
+    """Resumen general de ventas"""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        query = """
+        SELECT
+            v.id_venta,
+            v.fecha,
+            c.nombre_cliente AS cliente,
+            e.nombre_empleado AS empleado,
+            v.total
+        FROM venta v
+        INNER JOIN cliente c ON c.id_cliente = v.id_cliente
+        INNER JOIN empleado e ON e.id_empleado = v.id_empleado
+        ORDER BY v.fecha DESC
+        """
+        
+        cur.execute(query)
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        ventas = []
+        for row in rows:
+            ventas.append({
+                "id_venta": row[0],
+                "fecha": str(row[1]),
+                "cliente": row[2],
+                "empleado": row[3],
+                "total": float(row[4])
+            })
+
+        return jsonify(ventas)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@routes.route("/ventas/detalles", methods=["GET"])
+def detalles_ventas():
+    """Detalle completo de todas las ventas"""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        query = """
+        SELECT
+            v.id_venta,
+            v.fecha,
+            c.nombre_cliente AS cliente,
+            e.nombre_empleado AS empleado,
+            p.nombre_producto AS producto,
+            d.cantidad,
+            d.precio_unitario,
+            v.total
+        FROM venta v
+        INNER JOIN cliente c ON c.id_cliente = v.id_cliente
+        INNER JOIN empleado e ON e.id_empleado = v.id_empleado
+        INNER JOIN detalle_venta d ON d.id_venta = v.id_venta
+        INNER JOIN producto p ON p.id_producto = d.id_producto
+        ORDER BY v.fecha DESC
+        """
+        
+        cur.execute(query)
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        detalles = []
+        for row in rows:
+            detalles.append({
+                "id_venta": row[0],
+                "fecha": str(row[1]),
+                "cliente": row[2],
+                "empleado": row[3],
+                "producto": row[4],
+                "cantidad": row[5],
+                "precio_unitario": float(row[6]),
+                "total": float(row[7])
+            })
+
+        return jsonify(detalles)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@routes.route("/compras/detalles", methods=["GET"])
+def detalles_compras():
+    """Detalle de todas las compras"""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        query = """
+        SELECT
+            c.id_compra,
+            c.fecha,
+            p.nombre_proveedor AS proveedor,
+            pr.nombre_producto,
+            d.cantidad,
+            d.costo_unitario,
+            c.total
+        FROM compra c
+        INNER JOIN proveedor p ON p.id_proveedor = c.id_proveedor
+        INNER JOIN detalle_compra d ON d.id_compra = c.id_compra
+        INNER JOIN producto pr ON pr.id_producto = d.id_producto
+        ORDER BY c.fecha DESC
+        """
+        
+        cur.execute(query)
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        detalles = []
+        for row in rows:
+            detalles.append({
+                "id_compra": row[0],
+                "fecha": str(row[1]),
+                "proveedor": row[2],
+                "nombre_producto": row[3],
+                "cantidad": row[4],
+                "costo_unitario": float(row[5]),
+                "total": float(row[6])
+            })
+
+        return jsonify(detalles)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ================================ EXTRA ================================
+
+@routes.route("/empleados/ventas", methods=["GET"])
+def ventas_por_empleado():
+    """Ventas totales por empleado"""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        query = """
+        SELECT
+            e.nombre_empleado,
+            SUM(v.total) AS total_vendido
+        FROM venta v
+        INNER JOIN empleado e ON e.id_empleado = v.id_empleado
+        GROUP BY e.nombre_empleado
+        ORDER BY total_vendido DESC
+        """
+        
+        cur.execute(query)
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        empleados = []
+        for row in rows:
+            empleados.append({
+                "nombre_empleado": row[0],
+                "total_vendido": float(row[1])
+            })
+
+        return jsonify(empleados)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
