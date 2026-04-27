@@ -1,8 +1,5 @@
 -- Aquí esta el script para crear la base de datos y las tablas necesarias
 
--- Creacion de la base de datos
-CREATE DATABASE Proyecto2
-
 -- Creación de tablas 
 
 -- CATEGORIA
