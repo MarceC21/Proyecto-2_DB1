@@ -1,22 +1,19 @@
 import { useEffect, useState } from "react";
 
 function App() {
-  const [productos, setProductos] = useState([]);
+  const [mensaje, setMensaje] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/productos")
+    fetch("http://localhost:5000/test")
       .then(res => res.json())
-      .then(data => setProductos(data));
+      .then(data => setMensaje(data.message))
+      .catch(err => console.error(err));
   }, []);
 
   return (
     <div>
-      <h1>Productos</h1>
-      <ul>
-        {productos.map((p, i) => (
-          <li key={i}>{p[1]}</li>
-        ))}
-      </ul>
+      <h1>Hola desde React</h1>
+      <h2>{mensaje}</h2>
     </div>
   );
 }
