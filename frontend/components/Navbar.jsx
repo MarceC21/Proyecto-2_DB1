@@ -22,6 +22,7 @@ function Navbar() {
 
 
 // Para el estilo 
+
 const styles = {
   nav: {
     display: "flex",
