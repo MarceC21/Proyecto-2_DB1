@@ -376,8 +376,9 @@ def compras_detalles():
         conn.close()
 
 
-# TRANSACCIÓN
 
+
+# TRANSACCIÓN para ventas
 @routes.route("/ventas", methods=["POST"])
 def crear_venta():
     """
@@ -437,4 +438,4 @@ def crear_venta():
 
     finally:
         cur.close()
-        conn.close()
+        conn.close()  

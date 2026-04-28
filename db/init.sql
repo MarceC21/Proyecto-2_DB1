@@ -413,3 +413,29 @@ CREATE INDEX idx_detalleventa_producto ON detalle_venta(id_producto);
 CREATE INDEX idx_venta_cliente ON venta(id_cliente);
 
 
+-- Las views
+CREATE VIEW resumen_ventas AS
+SELECT
+v.id_venta,
+v.fecha,
+c.nombre_cliente AS cliente,
+e.nombre_empleado AS empleado,
+v.total
+FROM venta v
+INNER JOIN cliente c ON c.id_cliente = v.id_cliente
+INNER JOIN empleado e ON e.id_empleado = v.id_empleado;
+
+CREATE VIEW detalle_compras AS
+SELECT
+c.id_compra,
+c.fecha,
+p.nombre_proveedor AS proveedor,
+pr.nombre_producto,
+d.cantidad,
+d.costo_unitario,
+c.total
+FROM compra c
+INNER JOIN proveedor p ON p.id_proveedor = c.id_proveedor
+INNER JOIN detalle_compra d ON d.id_compra = c.id_compra
+INNER JOIN producto pr ON pr.id_producto = d.id_producto;
+
