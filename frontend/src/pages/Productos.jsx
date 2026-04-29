@@ -1,11 +1,17 @@
 // Está página maneja todo lo relacionado a productos
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   getProductosDetalle,
   getProductosBajoStock,
   getTop5Productos,
   getVentasPorProducto,
+  getProductos,
+  crearProducto,
+  actualizarProducto,
+  eliminarProducto,
 } from "../services/api";
+
+
 
 // Hook para fetching de datos con manejo de loading y error
 function useFetch(fn) {
@@ -13,31 +19,156 @@ function useFetch(fn) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
+  const reload = useCallback(() => {
     setLoading(true);
     setError(null);
-
     fn()
-      .then((res) => {
-        if (isMounted) setData(res);
-      })
-      .catch((e) => {
-        if (isMounted) setError(e.message);
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
+      .then(setData)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }, [fn]);
 
-  return { data, loading, error };
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  return { data, loading, error, reload };
 }
 
+// ── CRUD de productos ─────────────────────────────────────────────
+const EMPTY_FORM = { nombre_producto: "", precio_producto: "", stock: "", id_categoria: "", id_proveedor: "" };
+
+function CrudProductos() {
+  const { data, loading, error, reload } = useFetch(getProductos);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [editId, setEditId] = useState(null);
+  const [msg, setMsg] = useState("");
+  const [msgError, setMsgError] = useState("");
+
+  const limpiar = () => { setForm(EMPTY_FORM); setEditId(null); setMsg(""); setMsgError(""); };
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async () => {
+    setMsg(""); setMsgError("");
+
+    if (!form.nombre_producto || !form.precio_producto) {
+      setMsgError("Nombre y precio son obligatorios");
+      return;
+    }
+
+    if (form.precio_producto <= 0) {
+      setMsgError("El precio debe ser mayor a 0");
+      return;
+    }
+
+    const body = {
+      nombre_producto: form.nombre_producto,
+      precio_producto: Number(form.precio_producto),
+      stock: Number(form.stock),
+      id_categoria: Number(form.id_categoria),
+      id_proveedor: Number(form.id_proveedor),
+    };
+    try {
+      if (editId) {
+        await actualizarProducto(editId, body);
+        setMsg("Producto actualizado.");
+      } else {
+        await crearProducto(body);
+        setMsg("Producto creado.");
+      }
+      setMsgError("");
+      limpiar();
+      reload();
+    } catch (e) {
+      if (e.message.toLowerCase().includes("foreign key")) {
+        setMsgError("No puedes eliminar este producto porque está en una venta");
+      } else {
+        setMsgError(e.message);
+      }
+    }
+  };
+
+  const handleEdit = (p) => {
+    setEditId(p.id_producto);
+    setForm({
+      nombre_producto: p.nombre_producto,
+      precio_producto: p.precio_producto,
+      stock: p.stock,
+      id_categoria: p.id_categoria,
+      id_proveedor: p.id_proveedor,
+    });
+    setMsg(""); setMsgError("");
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("¿Eliminar producto " + id + "?")) return;
+    try {
+      await eliminarProducto(id);
+      setMsg("Producto eliminado.");
+      setMsgError("");
+      reload();
+    } catch (e) {
+      if (e.message.toLowerCase().includes("foreign key")) {
+        setMsgError("No puedes eliminar este producto porque está en una venta");
+      } else {
+        setMsgError(e.message);
+      }
+    }
+  };
+
+  return (
+    <div>
+      <h2>CRUD — Productos</h2>
+
+      {/* Formulario */}
+      <div>
+        <input name="nombre_producto" placeholder="Nombre" value={form.nombre_producto} onChange={handleChange} />
+        <input name="precio_producto" placeholder="Precio" type="number" value={form.precio_producto} onChange={handleChange} />
+        <input name="stock" placeholder="Stock" type="number" value={form.stock} onChange={handleChange} />
+        <input name="id_categoria" placeholder="ID Categoría" type="number" value={form.id_categoria} onChange={handleChange} />
+        <input name="id_proveedor" placeholder="ID Proveedor" type="number" value={form.id_proveedor} onChange={handleChange} />
+        <button onClick={handleSubmit}>{editId ? "Actualizar" : "Crear"}</button>
+        {editId && <button onClick={limpiar}>Cancelar</button>}
+      </div>
+
+      {msg      && <p>{msg}</p>}
+      {msgError && <p>Error: {msgError}</p>}
+
+      {/* Tabla */}
+      {loading && <p>Cargando...</p>}
+      {error   && <p>Error: {error}</p>}
+      {!loading && !error && (
+        <table border="1" cellPadding="6">
+          <thead>
+            <tr>
+              <th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th>
+              <th>Cat.</th><th>Prov.</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((p) => (
+              <tr key={p.id_producto}>
+                <td>{p.id_producto}</td>
+                <td>{p.nombre_producto}</td>
+                <td>Q{Number(p.precio_producto).toFixed(2)}</td>
+                <td>{p.stock}</td>
+                <td>{p.id_categoria}</td>
+                <td>{p.id_proveedor}</td>
+                <td>
+                  <button onClick={() => handleEdit(p)}>Editar</button>
+                  <button onClick={() => handleDelete(p.id_producto)}>Eliminar</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+// ── Consultas de solo lectura ─────────────────────────────────────
 // Tabla que muestras todos los productos con su categoría y proveedor (JOIN)
 function TablaProductos() {
   const { data, loading, error } = useFetch(getProductosDetalle);
@@ -195,16 +326,14 @@ export default function Productos() {
   return (
     <div>
       <h1>Productos</h1>
-
+      <CrudProductos />
+      <hr />
       <TablaProductos />
       <hr />
-
       <ProductosBajoStock />
       <hr />
-
       <Top5Productos />
       <hr />
-
       <VentasPorProducto />
     </div>
   );
