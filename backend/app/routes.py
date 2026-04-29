@@ -17,6 +17,7 @@ def productos_con_detalle():
 
         query = """
         SELECT
+            p.id_producto,
             p.nombre_producto, 
             p.precio_producto,
             p.stock,
@@ -31,11 +32,12 @@ def productos_con_detalle():
         rows = cur.fetchall()
 
         productos = [{
-            "producto": r[0],
-            "precio": float(r[1]),
-            "stock": r[2],
-            "categoria": r[3],
-            "proveedor": r[4]
+            "id_producto": r[0],
+            "producto": r[1],
+            "precio": float(r[2]),
+            "stock": r[3],
+            "categoria": r[4],
+            "proveedor": r[5]
         } for r in rows]
 
         return jsonify(productos)
@@ -436,6 +438,144 @@ def crear_venta():
         conn.rollback()
         return jsonify({"error": str(e)}), 500
 
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ── CRUD PRODUCTOS ────────────────────────────────────────────────
+
+@routes.route("/productos", methods=["GET"])
+def listar_productos():
+    """Lista simple de productos con id (para CRUD)"""
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id_producto, nombre_producto, precio_producto, stock, id_categoria, id_proveedor FROM producto ORDER BY id_producto")
+        rows = cur.fetchall()
+        return jsonify([{
+            "id_producto": r[0],
+            "nombre_producto": r[1],
+            "precio_producto": float(r[2]),
+            "stock": r[3],
+            "id_categoria": r[4],
+            "id_proveedor": r[5]
+        } for r in rows])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@routes.route("/productos", methods=["POST"])
+def crear_producto():
+    try:
+        d = request.json
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO producto (nombre_producto, precio_producto, stock, id_categoria, id_proveedor)
+            VALUES (%s, %s, %s, %s, %s) RETURNING id_producto
+        """, (d["nombre_producto"], d["precio_producto"], d["stock"], d["id_categoria"], d["id_proveedor"]))
+        conn.commit()
+        return jsonify({"mensaje": "Producto creado", "id_producto": cur.fetchone()[0]}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@routes.route("/productos/<int:id_producto>", methods=["PUT"])
+def actualizar_producto(id_producto):
+    try:
+        d = request.json
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE producto
+            SET nombre_producto=%s, precio_producto=%s, stock=%s, id_categoria=%s, id_proveedor=%s
+            WHERE id_producto=%s
+        """, (d["nombre_producto"], d["precio_producto"], d["stock"], d["id_categoria"], d["id_proveedor"], id_producto))
+        conn.commit()
+        if cur.rowcount == 0:
+            return jsonify({"error": "Producto no encontrado"}), 404
+        return jsonify({"mensaje": "Producto actualizado"})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@routes.route("/productos/<int:id_producto>", methods=["DELETE"])
+def eliminar_producto(id_producto):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM producto WHERE id_producto=%s", (id_producto,))
+        conn.commit()
+        if cur.rowcount == 0:
+            return jsonify({"error": "Producto no encontrado"}), 404
+        return jsonify({"mensaje": "Producto eliminado"})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ── CRUD VENTAS ───────────────────────────────────────────────────
+# NOTA: POST ya existe como transacción en /ventas
+# Agregamos GET por id, PUT y DELETE
+
+@routes.route("/ventas/<int:id_venta>", methods=["DELETE"])
+def eliminar_venta(id_venta):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        conn.autocommit = False
+
+        # Primero borramos detalles (FK), luego la venta
+        cur.execute("DELETE FROM detalle_venta WHERE id_venta=%s", (id_venta,))
+        cur.execute("DELETE FROM venta WHERE id_venta=%s", (id_venta,))
+
+        if cur.rowcount == 0:
+            conn.rollback()
+            return jsonify({"error": "Venta no encontrada"}), 404
+
+        conn.commit()
+        return jsonify({"mensaje": "Venta eliminada"})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@routes.route("/ventas/<int:id_venta>", methods=["PUT"])
+def actualizar_venta(id_venta):
+    """Actualiza solo el total y el cliente de una venta"""
+    try:
+        d = request.json
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE venta SET id_cliente=%s, id_empleado=%s, total=%s
+            WHERE id_venta=%s
+        """, (d["id_cliente"], d["id_empleado"], d["total"], id_venta))
+        conn.commit()
+        if cur.rowcount == 0:
+            return jsonify({"error": "Venta no encontrada"}), 404
+        return jsonify({"mensaje": "Venta actualizada"})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
     finally:
         cur.close()
         conn.close()  

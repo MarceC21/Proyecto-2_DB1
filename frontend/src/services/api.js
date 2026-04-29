@@ -32,3 +32,18 @@ export const crearVenta             = (body) =>
 
 // Para Compras
 export const getComprasDetalles     = () => request("/compras/detalles");
+
+// CRUD Productos
+export const getProductos           = () => request("/productos");
+export const crearProducto          = (body) =>
+  request("/productos", { method: "POST", body: JSON.stringify(body) });
+export const actualizarProducto     = (id, body) =>
+  request(`/productos/${id}`, { method: "PUT", body: JSON.stringify(body) });
+export const eliminarProducto       = (id) =>
+  request(`/productos/${id}`, { method: "DELETE" });
+
+// CRUD Ventas
+export const actualizarVenta        = (id, body) =>
+  request(`/ventas/${id}`, { method: "PUT", body: JSON.stringify(body) });
+export const eliminarVenta          = (id) =>
+  request(`/ventas/${id}`, { method: "DELETE" });
