@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   getResumenVentas,
   getVentasDetalles,
   getDetalleVenta,
   crearVenta,
+  actualizarVenta,
+  eliminarVenta,
 } from "../services/api";
 
 // Hook
@@ -12,29 +14,201 @@ function useFetch(fn) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
+  const reload = useCallback(() => {
     setLoading(true);
     setError(null);
-
     fn()
-      .then((res) => {
-        if (isMounted) setData(res);
-      })
-      .catch((e) => {
-        if (isMounted) setError(e.message);
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-
-    return () => (isMounted = false);
+      .then(setData)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
   }, [fn]);
 
-  return { data, loading, error };
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  return { data, loading, error, reload };
 }
 
+// CRUD de ventas 
+const EMPTY_VENTA = { id_cliente: "", id_empleado: "", total: "" };
+
+function CrudVentas() {
+  const { data, loading, error, reload } = useFetch(getResumenVentas);
+  const [form, setForm] = useState(EMPTY_VENTA);
+  const [editId, setEditId] = useState(null);
+  const [msg, setMsg] = useState("");
+  const [msgError, setMsgError] = useState("");
+
+  const limpiar = () => {
+    setForm(EMPTY_VENTA);
+    setEditId(null);
+    setMsg("");
+    setMsgError("");
+  };
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async () => {
+    setMsg("");
+    setMsgError("");
+
+    // VALIDACIONES
+    if (!editId) {
+      setMsgError("Selecciona una venta para editar");
+      return;
+    }
+
+    if (!form.id_cliente || !form.id_empleado || !form.total) {
+      setMsgError("Todos los campos son obligatorios");
+      return;
+    }
+
+    if (Number(form.total) <= 0) {
+      setMsgError("El total debe ser mayor a 0");
+      return;
+    }
+
+    try {
+      await actualizarVenta(editId, {
+        id_cliente: Number(form.id_cliente),
+        id_empleado: Number(form.id_empleado),
+        total: Number(form.total),
+      });
+
+      setMsg("Venta actualizada correctamente.");
+      limpiar();
+      reload();
+    } catch (e) {
+      const msgLower = e.message.toLowerCase();
+
+      if (msgLower.includes("foreign key")) {
+        setMsgError("Cliente o empleado inválido.");
+      } else if (msgLower.includes("not found")) {
+        setMsgError("La venta no existe.");
+      } else {
+        setMsgError(e.message);
+      }
+    }
+  };
+
+  const handleEdit = (v) => {
+    setEditId(v.id_venta);
+
+    
+    setForm({
+      id_cliente: "",
+      id_empleado: "",
+      total: v.total,
+    });
+
+    setMsg("");
+    setMsgError("");
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("¿Eliminar venta " + id + " y sus detalles?")) return;
+
+    setMsg("");
+    setMsgError("");
+
+    try {
+      await eliminarVenta(id);
+      setMsg("Venta eliminada correctamente.");
+      reload();
+    } catch (e) {
+      const msgLower = e.message.toLowerCase();
+
+      if (msgLower.includes("not found")) {
+        setMsgError("La venta no existe.");
+      } else {
+        setMsgError(e.message);
+      }
+    }
+  };
+
+  return (
+    <div>
+      <h2>CRUD — Ventas</h2>
+
+      <div>
+        {editId ? (
+          <>
+            <input
+              name="id_cliente"
+              placeholder="ID Cliente"
+              type="number"
+              value={form.id_cliente}
+              onChange={handleChange}
+            />
+            <input
+              name="id_empleado"
+              placeholder="ID Empleado"
+              type="number"
+              value={form.id_empleado}
+              onChange={handleChange}
+            />
+            <input
+              name="total"
+              placeholder="Total"
+              type="number"
+              value={form.total}
+              onChange={handleChange}
+            />
+
+            <button onClick={handleSubmit}>Actualizar</button>
+            <button onClick={limpiar}>Cancelar</button>
+          </>
+        ) : (
+          <p>Selecciona una venta para editar</p>
+        )}
+      </div>
+
+      {/* MENSAJES */}
+      {msg && <p style={{ color: "green" }}>{msg}</p>}
+      {msgError && <p style={{ color: "red" }}>Error: {msgError}</p>}
+
+      {/* TABLA */}
+      {loading && <p>Cargando...</p>}
+      {error && <p>Error: {error}</p>}
+
+      {!loading && !error && (
+        <table border="1" cellPadding="6">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Empleado</th>
+              <th>Total</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((v) => (
+              <tr key={v.id_venta}>
+                <td>{v.id_venta}</td>
+                <td>{v.fecha}</td>
+                <td>{v.cliente}</td>
+                <td>{v.empleado}</td>
+                <td>Q{v.total}</td>
+                <td>
+                  <button onClick={() => handleEdit(v)}>Editar</button>
+                  <button onClick={() => handleDelete(v.id_venta)}>
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+//Consultas de solo lectura
 // VIEW
 function ResumenVentas() {
   const { data, loading, error } = useFetch(getResumenVentas);
@@ -174,7 +348,8 @@ function BuscarVenta() {
   );
 }
 
-// 💥 TRANSACCIÓN
+// TRANSACCIÓN
+// Para crear una venta
 function FormularioVenta() {
   const [cliente, setCliente] = useState("");
   const [empleado, setEmpleado] = useState("");
@@ -237,16 +412,14 @@ export default function Ventas() {
   return (
     <div>
       <h1>Ventas</h1>
-
+      <CrudVentas />
+      <hr />
       <ResumenVentas />
       <hr />
-
       <VentasDetalles />
       <hr />
-
       <BuscarVenta />
       <hr />
-
       <FormularioVenta />
     </div>
   );
