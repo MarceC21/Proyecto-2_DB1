@@ -8,6 +8,8 @@ import {
   eliminarVenta,
 } from "../services/api";
 
+import { getProductos } from "../services/api";
+
 // Hook
 function useFetch(fn) {
   const [data, setData] = useState([]);
@@ -348,35 +350,67 @@ function BuscarVenta() {
   );
 }
 
-// TRANSACCIÓN
-// Para crear una venta
 function FormularioVenta() {
   const [cliente, setCliente] = useState("");
   const [empleado, setEmpleado] = useState("");
   const [producto, setProducto] = useState("");
   const [cantidad, setCantidad] = useState("");
-  const [precio, setPrecio] = useState("");
+
+  const [productos, setProductos] = useState([]);
+  const [precio, setPrecio] = useState(0);
+
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState(null);
+
+  // Cargar productos
+  useEffect(() => {
+    getProductos()
+      .then(setProductos)
+      .catch(() => setError("Error cargando productos"));
+  }, []);
+
+  // Obtener precio automáticamente
+  useEffect(() => {
+    const p = productos.find((p) => p.id_producto === Number(producto));
+    if (p) {
+      setPrecio(p.precio_producto);
+    } else {
+      setPrecio(0);
+    }
+  }, [producto, productos]);
 
   const enviar = async () => {
     setMensaje("");
     setError(null);
 
-    if (!cliente || !empleado || !producto || !cantidad || !precio) {
+    // VALIDACIONES
+    if (!cliente || !empleado || !producto || !cantidad) {
       setError("Completa todos los campos");
       return;
     }
 
+    if (Number(cantidad) <= 0) {
+      setError("Cantidad inválida");
+      return;
+    }
+
+    // Validar producto existente
+    if (precio === 0) {
+      setError("El producto no existe");
+      return;
+    }
+
+    const total = precio * Number(cantidad);
+
     const body = {
       id_cliente: Number(cliente),
       id_empleado: Number(empleado),
-      total: Number(precio) * Number(cantidad),
+      total,
       productos: [
         {
           id_producto: Number(producto),
           cantidad: Number(cantidad),
-          precio_unitario: Number(precio),
+          precio_unitario: precio,
         },
       ],
     };
@@ -384,8 +418,23 @@ function FormularioVenta() {
     try {
       const res = await crearVenta(body);
       setMensaje("Venta creada correctamente ID: " + res.id_venta);
+
+      // limpiar
+      setCliente("");
+      setEmpleado("");
+      setProducto("");
+      setCantidad("");
+
     } catch (e) {
-      setError(e.message);
+      const msg = e.message.toLowerCase();
+
+      if (msg.includes("stock")) {
+        setError("Stock insuficiente");
+      } else if (msg.includes("foreign key")) {
+        setError("Cliente o empleado no existe");
+      } else {
+        setError("Error al crear la venta");
+      }
     }
   };
 
@@ -393,16 +442,43 @@ function FormularioVenta() {
     <div>
       <h2>Crear venta (TRANSACCIÓN)</h2>
 
-      <input placeholder="ID Cliente" value={cliente} onChange={(e) => setCliente(e.target.value)} />
-      <input placeholder="ID Empleado" value={empleado} onChange={(e) => setEmpleado(e.target.value)} />
-      <input placeholder="ID Producto" value={producto} onChange={(e) => setProducto(e.target.value)} />
-      <input placeholder="Cantidad" value={cantidad} onChange={(e) => setCantidad(e.target.value)} />
-      <input placeholder="Precio unitario" value={precio} onChange={(e) => setPrecio(e.target.value)} />
+      {/* INPUTS SOLO NUMÉRICOS */}
+      <input
+        type="number"
+        placeholder="ID Cliente"
+        value={cliente}
+        onChange={(e) => setCliente(e.target.value)}
+      />
+
+      <input
+        type="number"
+        placeholder="ID Empleado"
+        value={empleado}
+        onChange={(e) => setEmpleado(e.target.value)}
+      />
+
+      <input
+        type="number"
+        placeholder="ID Producto"
+        value={producto}
+        onChange={(e) => setProducto(e.target.value)}
+      />
+
+      <input
+        type="number"
+        placeholder="Cantidad"
+        value={cantidad}
+        onChange={(e) => setCantidad(e.target.value)}
+      />
+
+      {/* INFO AUTOMÁTICA */}
+      <p>Precio unitario: Q{precio}</p>
+      <p>Total: Q{precio * (cantidad || 0)}</p>
 
       <button onClick={enviar}>Crear venta</button>
 
-      {mensaje && <p>{mensaje}</p>}
-      {error && <p>Error: {error}</p>}
+      {mensaje && <p style={{ color: "green" }}>{mensaje}</p>}
+      {error && <p style={{ color: "red" }}>Error: {error}</p>}
     </div>
   );
 }

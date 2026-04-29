@@ -35,7 +35,7 @@ function useFetch(fn) {
   return { data, loading, error, reload };
 }
 
-// ── CRUD de productos ─────────────────────────────────────────────
+//CRUD de productos
 const EMPTY_FORM = { nombre_producto: "", precio_producto: "", stock: "", id_categoria: "", id_proveedor: "" };
 
 function CrudProductos() {
@@ -50,15 +50,22 @@ function CrudProductos() {
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async () => {
-    setMsg(""); setMsgError("");
+    setMsg("");
+    setMsgError("");
 
+    // VALIDACIONES
     if (!form.nombre_producto || !form.precio_producto) {
       setMsgError("Nombre y precio son obligatorios");
       return;
     }
 
-    if (form.precio_producto <= 0) {
+    if (Number(form.precio_producto) <= 0) {
       setMsgError("El precio debe ser mayor a 0");
+      return;
+    }
+
+    if (form.id_categoria <= 0 || form.id_proveedor <= 0) {
+      setMsgError("IDs de categoría y proveedor inválidos");
       return;
     }
 
@@ -69,6 +76,7 @@ function CrudProductos() {
       id_categoria: Number(form.id_categoria),
       id_proveedor: Number(form.id_proveedor),
     };
+
     try {
       if (editId) {
         await actualizarProducto(editId, body);
@@ -77,14 +85,17 @@ function CrudProductos() {
         await crearProducto(body);
         setMsg("Producto creado.");
       }
-      setMsgError("");
+
       limpiar();
       reload();
+
     } catch (e) {
-      if (e.message.toLowerCase().includes("foreign key")) {
-        setMsgError("No puedes eliminar este producto porque está en una venta");
+      const msg = e.message.toLowerCase();
+
+      if (msg.includes("foreign key")) {
+        setMsgError("Categoría o proveedor no existe");
       } else {
-        setMsgError(e.message);
+        setMsgError("Error al guardar el producto");
       }
     }
   };

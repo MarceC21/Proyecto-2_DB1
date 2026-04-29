@@ -1,0 +1,194 @@
+/* ── Reset básico ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #111a14;   /* negro con tinte verde */
+  color: #d4e8d4;
+  min-height: 100vh;
+}
+
+/* ── Navbar ───────────────────────────────────────────────────── */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 54px;
+  background: #0a120c;
+  border-bottom: 1px solid #1e3a22;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-brand {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #6fcf7e;
+  letter-spacing: -0.01em;
+}
+
+.navbar-links {
+  display: flex;
+  list-style: none;
+  gap: 0.25rem;
+}
+
+.navbar-link {
+  display: block;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  color: #7aad85;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.navbar-link:hover      { background: #1a2e1d; color: #a8d8b0; }
+.navbar-link--active    { background: #1c3b22; color: #6fcf7e; }
+
+/* ── Layout ───────────────────────────────────────────────────── */
+.main-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ── Títulos de página ────────────────────────────────────────── */
+h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #a8e6b0;
+  margin-bottom: 1.75rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid #1e3a22;
+}
+
+h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #7aad85;
+  margin-bottom: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #1a2e1d;
+  margin: 2rem 0;
+}
+
+/* ── Sección (formulario + tabla juntos) ──────────────────────── */
+.section, div {
+  /* No forzamos flex aquí para no romper estructura,
+     solo controlamos el orden dentro de cada componente */
+}
+
+/* ── Formulario / barra de búsqueda ──────────────────────────── */
+/* Queremos que inputs y botones aparezcan arriba, antes de la tabla */
+input[type="text"],
+input[type="number"],
+input:not([type]) {
+  padding: 0.45rem 0.8rem;
+  background: #162119;
+  border: 1px solid #2a4a2e;
+  border-radius: 6px;
+  color: #d4e8d4;
+  font-size: 0.875rem;
+  outline: none;
+  margin: 0 0.35rem 0.6rem 0;
+  transition: border-color 0.15s;
+  width: auto;
+}
+
+input:focus { border-color: #4caf60; }
+
+button {
+  padding: 0.45rem 1rem;
+  background: #1e4d28;
+  border: 1px solid #2e6e38;
+  border-radius: 6px;
+  color: #a8e6b0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 0 0.3rem 0.6rem 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+button:hover { background: #265e30; border-color: #3d8848; }
+
+/* Botón cancelar / secundario */
+button:nth-of-type(2) {
+  background: #1a2e1d;
+  border-color: #2a4a2e;
+  color: #7aad85;
+}
+
+button:nth-of-type(2):hover { background: #203626; }
+
+/* ── Tablas ───────────────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  /* Centrar tabla */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Quitar el border="1" visual y reemplazar con nuestro estilo */
+table[border] { border: none; }
+
+thead tr { background: #162119; }
+
+thead th {
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4caf60;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #1e3a22;
+}
+
+tbody tr {
+  border-bottom: 1px solid #172418;
+  transition: background 0.1s;
+}
+
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover      { background: #162119; }
+
+tbody td {
+  padding: 0.6rem 0.9rem;
+  color: #c2ddc8;
+  border: none;
+}
+
+/* wrapper para scroll horizontal si la tabla es muy ancha */
+div > table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* ── Mensajes de estado ───────────────────────────────────────── */
+p { font-size: 0.875rem; margin: 0.4rem 0; }
+
+/* loading */
+p:only-child { color: #5a8a65; }
+
+/* error inline */
+p[style*="red"],
+p:has(+ *) { color: #f08080; }
+
+/* éxito inline */
+p[style*="green"] { color: #6fcf7e; }
+
+/* ── Precio / total destacado ─────────────────────────────────── */
+td:last-child { color: #a8e6b0; }
