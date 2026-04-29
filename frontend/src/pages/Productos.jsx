@@ -179,7 +179,7 @@ function CrudProductos() {
   );
 }
 
-// ── Consultas de solo lectura ─────────────────────────────────────
+// Consultas de solo lectura
 // Tabla que muestras todos los productos con su categoría y proveedor (JOIN)
 function TablaProductos() {
   const { data, loading, error } = useFetch(getProductosDetalle);

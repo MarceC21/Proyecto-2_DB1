@@ -1,194 +1,223 @@
-/* ── Reset básico ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: system-ui, sans-serif;
-  background: #111a14;   /* negro con tinte verde */
-  color: #d4e8d4;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
   min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
-/* ── Navbar ───────────────────────────────────────────────────── */
+/* ── Navbar ─────────────────────────────────────────────────── */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  height: 54px;
-  background: #0a120c;
-  border-bottom: 1px solid #1e3a22;
+  height: 56px;
+  background: #090e13;
+  border-bottom: 1px solid #1c2a3a;
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
 .navbar-brand {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #6fcf7e;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #79c0ff;
   letter-spacing: -0.01em;
 }
 
 .navbar-links {
   display: flex;
   list-style: none;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .navbar-link {
   display: block;
   padding: 0.4rem 1rem;
   border-radius: 6px;
-  color: #7aad85;
+  color: #8b949e;
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 500;
   transition: background 0.15s, color 0.15s;
 }
 
-.navbar-link:hover      { background: #1a2e1d; color: #a8d8b0; }
-.navbar-link--active    { background: #1c3b22; color: #6fcf7e; }
+.navbar-link:hover { background: #161b22; color: #c9d1d9; }
+.navbar-link--active { background: #1c2a3a; color: #58a6ff; }
 
-/* ── Layout ───────────────────────────────────────────────────── */
+/* ── Layout ─────────────────────────────────────────────────── */
 .main-content {
-  max-width: 1100px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
 
-/* ── Títulos de página ────────────────────────────────────────── */
+/* ── Encabezados ────────────────────────────────────────────── */
 h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #a8e6b0;
-  margin-bottom: 1.75rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid #1e3a22;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #e6edf3;
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.02em;
 }
 
 h2 {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: #7aad85;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
   margin-bottom: 0.75rem;
-  margin-top: 0.25rem;
 }
 
 hr {
   border: none;
-  border-top: 1px solid #1a2e1d;
-  margin: 2rem 0;
+  border-top: 1px solid #161b22;
+  margin: 2.5rem 0;
 }
 
-/* ── Sección (formulario + tabla juntos) ──────────────────────── */
-.section, div {
-  /* No forzamos flex aquí para no romper estructura,
-     solo controlamos el orden dentro de cada componente */
+/* ── Subtítulo de sección ───────────────────────────────────── */
+.section-desc {
+  font-size: 0.85rem;
+  color: #6e7681;
+  margin-bottom: 1.5rem;
 }
 
-/* ── Formulario / barra de búsqueda ──────────────────────────── */
-/* Queremos que inputs y botones aparezcan arriba, antes de la tabla */
+/* ── Formularios / inputs ───────────────────────────────────── */
 input[type="text"],
 input[type="number"],
 input:not([type]) {
-  padding: 0.45rem 0.8rem;
-  background: #162119;
-  border: 1px solid #2a4a2e;
+  padding: 0.45rem 0.85rem;
+  background: #161b22;
+  border: 1px solid #30363d;
   border-radius: 6px;
-  color: #d4e8d4;
+  color: #c9d1d9;
   font-size: 0.875rem;
   outline: none;
-  margin: 0 0.35rem 0.6rem 0;
-  transition: border-color 0.15s;
-  width: auto;
+  margin: 0 0.4rem 0.75rem 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 140px;
 }
 
-input:focus { border-color: #4caf60; }
+input:focus {
+  border-color: #388bfd;
+  box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.15);
+}
 
+input::placeholder { color: #484f58; }
+
+/* ── Botones ────────────────────────────────────────────────── */
 button {
   padding: 0.45rem 1rem;
-  background: #1e4d28;
-  border: 1px solid #2e6e38;
+  background: #21262d;
+  border: 1px solid #30363d;
   border-radius: 6px;
-  color: #a8e6b0;
+  color: #c9d1d9;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  margin: 0 0.3rem 0.6rem 0;
+  margin: 0 0.4rem 0.75rem 0;
   transition: background 0.15s, border-color 0.15s;
 }
 
-button:hover { background: #265e30; border-color: #3d8848; }
+button:hover { background: #30363d; border-color: #8b949e; color: #e6edf3; }
 
-/* Botón cancelar / secundario */
-button:nth-of-type(2) {
-  background: #1a2e1d;
-  border-color: #2a4a2e;
-  color: #7aad85;
+/* botón primario — el primero en cualquier grupo */
+button:first-of-type {
+  background: #1f6feb;
+  border-color: #388bfd;
+  color: #ffffff;
 }
 
-button:nth-of-type(2):hover { background: #203626; }
+button:first-of-type:hover { background: #388bfd; }
 
-/* ── Tablas ───────────────────────────────────────────────────── */
+/* cancelar / secundario */
+button:nth-of-type(2) {
+  background: #21262d;
+  border-color: #30363d;
+  color: #8b949e;
+}
+
+/* ── Tablas ─────────────────────────────────────────────────── */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #21262d;
+  margin-bottom: 0.5rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
-  /* Centrar tabla */
-  margin-left: auto;
-  margin-right: auto;
+  font-size: 0.875rem;
+  background: #0d1117;
 }
 
-/* Quitar el border="1" visual y reemplazar con nuestro estilo */
+/* override del atributo border="1" que vienen en el JSX */
 table[border] { border: none; }
 
-thead tr { background: #162119; }
+thead { background: #161b22; }
 
 thead th {
-  padding: 0.6rem 0.9rem;
+  padding: 0.65rem 1rem;
   text-align: left;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #4caf60;
+  color: #8b949e;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid #1e3a22;
-}
-
-tbody tr {
-  border-bottom: 1px solid #172418;
-  transition: background 0.1s;
-}
-
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover      { background: #162119; }
-
-tbody td {
-  padding: 0.6rem 0.9rem;
-  color: #c2ddc8;
-  border: none;
-}
-
-/* wrapper para scroll horizontal si la tabla es muy ancha */
-div > table {
-  display: block;
-  overflow-x: auto;
+  letter-spacing: 0.07em;
+  border-bottom: 1px solid #21262d;
   white-space: nowrap;
 }
 
-/* ── Mensajes de estado ───────────────────────────────────────── */
-p { font-size: 0.875rem; margin: 0.4rem 0; }
+tbody tr { border-bottom: 1px solid #161b22; transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #161b22; }
 
-/* loading */
-p:only-child { color: #5a8a65; }
+tbody td {
+  padding: 0.6rem 1rem;
+  color: #c9d1d9;
+  border: none;
+  white-space: nowrap;
+}
 
-/* error inline */
-p[style*="red"],
-p:has(+ *) { color: #f08080; }
+/* columna de acciones */
+tbody td:last-child { color: #8b949e; }
 
-/* éxito inline */
-p[style*="green"] { color: #6fcf7e; }
+/* botones dentro de tabla — más pequeños */
+tbody td button {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+  margin: 0 0.25rem 0 0;
+}
 
-/* ── Precio / total destacado ─────────────────────────────────── */
-td:last-child { color: #a8e6b0; }
+tbody td button:first-of-type {
+  background: #1c2a3a;
+  border-color: #1f6feb;
+  color: #58a6ff;
+}
+
+tbody td button:first-of-type:hover { background: #1f3a5f; }
+
+tbody td button:nth-of-type(2) {
+  background: #2a1a1a;
+  border-color: #6e3535;
+  color: #f85149;
+}
+
+tbody td button:nth-of-type(2):hover { background: #3d1f1f; border-color: #f85149; }
+
+/* ── Mensajes de feedback ───────────────────────────────────── */
+p { font-size: 0.875rem; color: #8b949e; margin: 0.3rem 0; }
+
+p[style*="green"], .msg-ok  { color: #3fb950 !important; }
+p[style*="red"],   .msg-err { color: #f85149 !important; }
+
+/* ── Badge de precio/total ──────────────────────────────────── */
+.amount { color: #79c0ff; font-variant-numeric: tabular-nums; }

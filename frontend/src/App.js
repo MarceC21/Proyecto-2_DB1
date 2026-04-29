@@ -5,7 +5,6 @@ import Clientes from "./pages/Clientes";
 import Ventas from "./pages/Ventas";
 import Compras from "./pages/Compras";
 
-
 // Esta página solo va a mostrar el navbar 
 export default function App() {
   return (

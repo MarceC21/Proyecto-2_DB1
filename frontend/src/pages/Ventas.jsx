@@ -350,6 +350,7 @@ function BuscarVenta() {
   );
 }
 
+// Formulario para crear una venta (transacción)
 function FormularioVenta() {
   const [cliente, setCliente] = useState("");
   const [empleado, setEmpleado] = useState("");
@@ -441,8 +442,6 @@ function FormularioVenta() {
   return (
     <div>
       <h2>Crear venta (TRANSACCIÓN)</h2>
-
-      {/* INPUTS SOLO NUMÉRICOS */}
       <input
         type="number"
         placeholder="ID Cliente"
